@@ -27,11 +27,26 @@ upload_plugin_lftp.sh    # Helper script for pushing the plugin to a remote host
 - Adjust strategy constants (`AW_MARKUP_STRATEGY`, `AW_APPLY_TO_SALE_PRICE`, etc.) if you need different behavior.
 
 ## Deployment Helper
-Use `upload_plugin_lftp.sh` to sync the plugin to a remote host that supports `lftp`. Update the connection variables inside the script before running:
+Use `upload_plugin_lftp.sh` to sync the plugin to a remote host via FTPS.
 
+### Setup
+1. Create a `.env` file in the project root:
+```bash
+FTP_HOST=147.79.122.118
+FTP_USER=u659513315.thrwdist
+FTP_PASS=your_password
+REMOTE_PLUGINS_PATH=wp-content/plugins
+FORCE_TLS=true
+```
+
+2. The `.env` file is automatically gitignored for security.
+
+### Deploy
 ```bash
 bash upload_plugin_lftp.sh
 ```
+
+The script automatically loads credentials from `.env` or falls back to environment variables.
 
 ## Development Notes
 - The plugin relies on WooCommerce filter hooks to inject markups; ensure WooCommerce is active.

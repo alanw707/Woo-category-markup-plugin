@@ -1,11 +1,24 @@
 #!/usr/bin/env bash
 # Upload WooCommerce markup plugin via lftp (FTP/FTPS)
 # Usage:
-#   export FTP_PASS='your_NEW_password'
+#   # Option 1: Use .env file (recommended)
 #   bash upload_plugin_lftp.sh
-# (Rotate the password you previously exposed before using.)
+#
+#   # Option 2: Export environment variables
+#   export FTP_PASS='your_password'
+#   bash upload_plugin_lftp.sh
 
 set -euo pipefail
+
+# Load credentials from .env file if it exists
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/.env" ]]; then
+  echo "[INFO] Loading credentials from .env file..."
+  # shellcheck disable=SC1090
+  set -a
+  source "$SCRIPT_DIR/.env"
+  set +a
+fi
 
 # --------------------------- CONFIG ---------------------------------
 HOST=${FTP_HOST:-"147.79.122.118"}            # FTP host or IP
@@ -20,7 +33,9 @@ SKIP_CERT_CHECK=${SKIP_CERT_CHECK:-auto}       # true|false|auto (auto skips whe
 
 FTP_PASS=${FTP_PASS:-}
 if [[ -z "$FTP_PASS" ]]; then
-  echo "[ERROR] FTP_PASS environment variable not set. Export it before running." >&2
+  echo "[ERROR] FTP_PASS not found. Either:" >&2
+  echo "  1. Create a .env file with FTP_PASS=your_password" >&2
+  echo "  2. Export FTP_PASS environment variable" >&2
   exit 1
 fi
 
