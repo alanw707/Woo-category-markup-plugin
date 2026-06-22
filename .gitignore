@@ -19,3 +19,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Generated visual verification artifacts
+# Keep text reports/docs, regenerate screenshots when needed.
+docs/screenshots/**/*.png
