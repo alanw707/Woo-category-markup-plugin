@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.49
+ * Version: 1.2.50
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.49' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.50' );
 
 add_action(
 	'init',
@@ -343,6 +343,84 @@ function threew_storefront_dequeue_mobile_catalog_scripts() {
 add_action( 'wp_enqueue_scripts', 'threew_storefront_dequeue_mobile_catalog_scripts', 1100 );
 add_action( 'wp_print_scripts', 'threew_storefront_dequeue_mobile_catalog_scripts', 1100 );
 add_action( 'wp_print_footer_scripts', 'threew_storefront_dequeue_mobile_catalog_scripts', 1 );
+
+function threew_storefront_known_product_brands() {
+	return array(
+		'akrapovic'  => 'Akrapovic',
+		'apr'        => 'APR',
+		'awe'        => 'AWE Tuning',
+		'awe-tuning' => 'AWE Tuning',
+		'brabus'     => 'BRABUS',
+		'capristo'   => 'Capristo',
+		'dinan'      => 'Dinan',
+		'eventuri'   => 'Eventuri',
+		'fi-exhaust' => 'FI Exhaust',
+		'letech'     => 'LETECH',
+	);
+}
+
+function threew_storefront_product_schema_brand_name( $product ) {
+	if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+		return '';
+	}
+
+	$known_brands = threew_storefront_known_product_brands();
+	$product_id   = $product->get_id();
+
+	foreach ( array( 'product_brand', 'pa_brand', 'product_cat' ) as $taxonomy ) {
+		$terms = taxonomy_exists( $taxonomy ) ? wp_get_post_terms( $product_id, $taxonomy ) : array();
+
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			continue;
+		}
+
+		foreach ( $terms as $term ) {
+			$slug = sanitize_title( $term->slug );
+			$name = sanitize_title( $term->name );
+
+			if ( isset( $known_brands[ $slug ] ) ) {
+				return $known_brands[ $slug ];
+			}
+
+			if ( isset( $known_brands[ $name ] ) ) {
+				return $known_brands[ $name ];
+			}
+		}
+	}
+
+	$title = sanitize_title( $product->get_name() );
+	foreach ( $known_brands as $slug => $brand_name ) {
+		if ( 0 === strpos( $title, $slug ) ) {
+			return $brand_name;
+		}
+	}
+
+	return '';
+}
+
+add_filter(
+	'woocommerce_structured_data_product',
+	static function ( $markup, $product ) {
+		if ( ! empty( $markup['brand'] ) ) {
+			return $markup;
+		}
+
+		$brand_name = threew_storefront_product_schema_brand_name( $product );
+
+		if ( '' === $brand_name ) {
+			return $markup;
+		}
+
+		$markup['brand'] = array(
+			'@type' => 'Brand',
+			'name'  => $brand_name,
+		);
+
+		return $markup;
+	},
+	20,
+	2
+);
 
 add_filter(
 	'woocommerce_loop_add_to_cart_args',
