@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# Upload WooCommerce markup plugin via lftp (FTP/FTPS)
+# Upload any local WordPress plugin via lftp (FTP/FTPS)
 # Usage:
-#   # Option 1: Use .env file (recommended)
-#   bash upload_plugin_lftp.sh
+#   bash upload_plugin_lftp.sh storefront-polish-hotfix
+#   bash upload_plugin_lftp.sh category-markup
 #
-#   # Option 2: Export environment variables
-#   export FTP_PASS='your_password'
-#   bash upload_plugin_lftp.sh
+# Credentials load from .env, or export FTP_PASS before running.
 
 set -euo pipefail
 
@@ -24,10 +22,11 @@ fi
 HOST=${FTP_HOST:-"147.79.122.118"}            # FTP host or IP
 USER=${FTP_USER:-"u659513315.thrwdist"}       # FTP username
 REMOTE_PLUGINS_PATH=${REMOTE_PLUGINS_PATH:-"wp-content/plugins"}
-REMOTE_PLUGIN_SLUG=${REMOTE_PLUGIN_SLUG:-"category-markup"}
+PLUGIN_PATH=${1:-${PLUGIN_PATH:-}}
+REMOTE_PLUGIN_SLUG=${REMOTE_PLUGIN_SLUG:-}
 LOCAL_PLUGIN_DIR=${LOCAL_PLUGIN_DIR:-}
-LOCAL_PLUGIN_FILE=${LOCAL_PLUGIN_FILE:-"category-markup/category-markup.php"}
-REMOTE_PLUGIN_FILE=${REMOTE_PLUGIN_FILE:-"category-markup.php"}
+LOCAL_PLUGIN_FILE=${LOCAL_PLUGIN_FILE:-}
+REMOTE_PLUGIN_FILE=${REMOTE_PLUGIN_FILE:-}
 FORCE_TLS=${FORCE_TLS:-true}                   # Require FTPS (explicit TLS)
 SKIP_CERT_CHECK=${SKIP_CERT_CHECK:-auto}       # true|false|auto (auto skips when HOST is an IP)
 # --------------------------------------------------------------------
@@ -40,16 +39,35 @@ if [[ -z "$FTP_PASS" ]]; then
   exit 1
 fi
 
+if [[ -z "$LOCAL_PLUGIN_DIR" && -z "$LOCAL_PLUGIN_FILE" ]]; then
+  if [[ -z "$PLUGIN_PATH" ]]; then
+    echo "[ERROR] Plugin path required. Example: bash upload_plugin_lftp.sh storefront-polish-hotfix" >&2
+    exit 1
+  fi
+
+  if [[ -d "$PLUGIN_PATH" ]]; then
+    LOCAL_PLUGIN_DIR="$PLUGIN_PATH"
+  elif [[ -f "$PLUGIN_PATH" ]]; then
+    LOCAL_PLUGIN_FILE="$PLUGIN_PATH"
+  else
+    echo "[ERROR] Plugin path '$PLUGIN_PATH' not found in $(pwd)." >&2
+    exit 1
+  fi
+fi
+
 if [[ -n "$LOCAL_PLUGIN_DIR" ]]; then
   if [[ ! -d "$LOCAL_PLUGIN_DIR" ]]; then
     echo "[ERROR] Local plugin dir '$LOCAL_PLUGIN_DIR' not found in $(pwd)." >&2
     exit 1
   fi
+  REMOTE_PLUGIN_SLUG=${REMOTE_PLUGIN_SLUG:-$(basename "$LOCAL_PLUGIN_DIR")}
 else
   if [[ ! -f "$LOCAL_PLUGIN_FILE" ]]; then
     echo "[ERROR] Local plugin file '$LOCAL_PLUGIN_FILE' not found in $(pwd)." >&2
     exit 1
   fi
+  REMOTE_PLUGIN_SLUG=${REMOTE_PLUGIN_SLUG:-$(basename "$(dirname "$LOCAL_PLUGIN_FILE")")}
+  REMOTE_PLUGIN_FILE=${REMOTE_PLUGIN_FILE:-$(basename "$LOCAL_PLUGIN_FILE")}
 fi
 
 LFTP_CMD="set cmd:fail-exit true; set net:max-retries 2; set net:timeout 20;"
@@ -102,8 +120,7 @@ if lftp -f "$TMP_SCRIPT"; then
   echo "[SUCCESS] Upload complete."
   echo "Next steps:"
   echo "  1. Log into WP Admin -> Plugins."
-  echo "  2. Locate 'Category Markup' and activate (or update)."
-  echo "  3. (Optional) Edit Products > Categories > 'brabus' to override markup percent."
+  echo "  2. Locate '$REMOTE_PLUGIN_SLUG' and activate/update if needed."
 else
   echo "[ERROR] Upload failed." >&2
   exit 1

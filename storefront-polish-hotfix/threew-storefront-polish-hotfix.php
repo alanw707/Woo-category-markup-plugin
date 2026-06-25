@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.54
+ * Version: 1.2.61
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.54' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.61' );
 
 add_action(
 	'init',
@@ -709,6 +709,65 @@ function threew_storefront_import_monoblock_f_titanium_official_image() {
 }
 add_action( 'init', 'threew_storefront_import_monoblock_f_titanium_official_image', 23 );
 
+function threew_storefront_import_priority_product_official_images() {
+	$option_name = 'threew_priority_product_official_images_20260625';
+
+	if ( get_option( $option_name ) ) {
+		return;
+	}
+
+	$product_images = array(
+		121634 => array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/0/d/3/8/0d3829b4ea7b5b8a7e46b0364fec1b73bcdd28a9/232-678-63-2560x1440.jpg',
+				'title' => 'BRABUS SL63 official rear diffuser and exhaust image',
+			),
+		),
+		121968 => array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/8/7/9/9/879944690836fe4ecac9615639bf0fd230e6dd4e/465-678-63-2%20%281%29_NEU-2560x1440.jpg',
+				'title' => 'BRABUS W465 valve controlled exhaust official image',
+			),
+		),
+		121978 => array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/0/7/6/d/076dc809ff5b41622c7422a62fcda3ce94072a38/465-b40-700-00-powerxtra-2560x1440.jpg',
+				'title' => 'BRABUS W465 B40-700 PowerXtra official image',
+			),
+		),
+		98001  => array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/1/9/9/a/199a458f9967ad4d95bdf761371c3cf57285e354/LK-350-00-W-VL-2560x1440.jpg',
+				'title' => 'BRABUS Range Rover carbon entrance panels official image',
+			),
+		),
+	);
+
+	$results = array();
+
+	foreach ( $product_images as $product_id => $images ) {
+		$attachment_ids = threew_storefront_attach_official_images_to_product( $product_id, $images );
+
+		if ( ! empty( $attachment_ids ) ) {
+			$results[ $product_id ] = $attachment_ids;
+		}
+	}
+
+	if ( empty( $results ) ) {
+		return;
+	}
+
+	update_option(
+		$option_name,
+		array(
+			'time'    => time(),
+			'results' => $results,
+		),
+		false
+	);
+}
+add_action( 'init', 'threew_storefront_import_priority_product_official_images', 24 );
+
 add_filter(
 	'woocommerce_loop_add_to_cart_args',
 	static function ( $args, $product ) {
@@ -1107,6 +1166,8 @@ add_action(
 				}
 
 				body.home .mobile-toggle,
+				body.home #mini-cart,
+				body.home .mini-cart,
 				body.home #mini-cart > a,
 				body.home .cart-toggle {
 					z-index: 1005 !important;
@@ -1114,10 +1175,65 @@ add_action(
 					background: rgba(255, 255, 255, .001) !important;
 				}
 
+				body.home #header,
+				body.home header {
+					height: 88px !important;
+					min-height: 88px !important;
+					max-height: 88px !important;
+					background: var(--threew-ink-soft) !important;
+					overflow: visible !important;
+				}
+
+				body.home .header-main,
+				body.home .header-center,
+				body.home .header-left,
+				body.home .header-right {
+					height: 88px !important;
+					min-height: 88px !important;
+					max-height: 88px !important;
+					align-items: center !important;
+					overflow: visible !important;
+				}
+
+				body.home .header-main {
+					padding-top: 10px !important;
+					padding-bottom: 10px !important;
+				}
+
+				body.home .logo,
+				body.home .header-logo,
+				body.home #header .logo {
+					display: flex !important;
+					align-items: center !important;
+					max-width: 48px !important;
+				}
+
+				body.home .logo img,
+				body.home .header-logo img,
+				body.home #header .logo img {
+					width: 44px !important;
+					max-width: 44px !important;
+					height: auto !important;
+				}
+
+				body.home .header-main .mini-cart,
+				body.home #mini-cart,
+				body.home .cart-toggle {
+					position: fixed !important;
+					top: 3px !important;
+					right: -18px !important;
+					left: auto !important;
+					bottom: auto !important;
+					width: 44px !important;
+					height: 44px !important;
+					min-width: 44px !important;
+					min-height: 44px !important;
+				}
+
 				body.home .mobile-toggle {
 					position: fixed !important;
-					top: 7px !important;
-					right: 0 !important;
+					top: 20px !important;
+					right: -13px !important;
 					left: auto !important;
 					transform: none !important;
 					width: 44px !important;
@@ -1147,8 +1263,8 @@ add_action(
 				body .threew-mobile-header-search {
 					display: block;
 					position: fixed;
-					top: 14px;
-					left: 74px;
+					top: 23px;
+					left: 64px;
 					right: 120px;
 					z-index: 1004;
 					padding: 0;
