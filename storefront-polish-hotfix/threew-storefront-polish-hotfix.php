@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.51
+ * Version: 1.2.53
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.51' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.53' );
 
 add_action(
 	'init',
@@ -539,6 +539,143 @@ function threew_storefront_import_w465_widestar_official_images() {
 	do_action( 'litespeed_purge_url', get_permalink( $product_id ) );
 }
 add_action( 'init', 'threew_storefront_import_w465_widestar_official_images', 20 );
+
+function threew_storefront_attach_official_images_to_product( $product_id, $images ) {
+	$product = function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+
+	if ( ! $product ) {
+		return array();
+	}
+
+	$imported_attachment_ids = array();
+
+	foreach ( $images as $image ) {
+		$attachment_id = threew_storefront_sideload_product_image( $product_id, $image['url'], $image['title'] );
+
+		if ( $attachment_id ) {
+			$imported_attachment_ids[] = $attachment_id;
+		}
+	}
+
+	if ( empty( $imported_attachment_ids ) ) {
+		return array();
+	}
+
+	$gallery_ids = array_filter( array_map( 'absint', $product->get_gallery_image_ids() ) );
+	$gallery_ids = array_values( array_unique( array_merge( $gallery_ids, $imported_attachment_ids ) ) );
+
+	$product->set_gallery_image_ids( $gallery_ids );
+	$product->save();
+
+	do_action( 'litespeed_purge_post', $product_id );
+	do_action( 'litespeed_purge_url', get_permalink( $product_id ) );
+
+	return $imported_attachment_ids;
+}
+
+function threew_storefront_import_range_rover_wheel_official_images() {
+	$option_name = 'threew_range_rover_wheel_official_images_20260625';
+
+	if ( get_option( $option_name ) ) {
+		return;
+	}
+
+	$overview_image = array(
+		'url'   => 'https://www.brabus.com/_Resources/Persistent/8/4/f/b/84fbb8e2f941e938ee85ba19d35eb756adda1406/Tuning%C3%BCbersicht%20Range%20Rover%20%283%29-540x360.jpg',
+		'title' => 'BRABUS Range Rover official tuning overview',
+	);
+
+	$product_images = array(
+		97994 => array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/a/e/a/7/aea72eae083734b56ed1a1b650d25aeb717c6b50/Mono%20ZV%201-2560x1440.jpg',
+				'title' => 'BRABUS Range Rover Monoblock ZV official wheel image',
+			),
+			$overview_image,
+		),
+		97997 => array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/4/4/b/7/44b764385adec8ff102188f5deff4774b12c64f9/MonoblockZ_seitlich_white-2-2560x1440.jpg',
+				'title' => 'BRABUS Range Rover Monoblock Z official wheel image',
+			),
+			$overview_image,
+		),
+		97991 => array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/9/7/c/5/97c51393648feff5b9bfb406f7f7948d50192ddb/M12-222-217-1-PE-2560x1440.jpg',
+				'title' => 'BRABUS Range Rover Monoblock M official wheel image',
+			),
+			$overview_image,
+		),
+	);
+
+	$results = array();
+
+	foreach ( $product_images as $product_id => $images ) {
+		$attachment_ids = threew_storefront_attach_official_images_to_product( $product_id, $images );
+
+		if ( ! empty( $attachment_ids ) ) {
+			$results[ $product_id ] = $attachment_ids;
+		}
+	}
+
+	if ( empty( $results ) ) {
+		return;
+	}
+
+	update_option(
+		$option_name,
+		array(
+			'time'    => time(),
+			'results' => $results,
+		),
+		false
+	);
+}
+add_action( 'init', 'threew_storefront_import_range_rover_wheel_official_images', 21 );
+
+function threew_storefront_import_w465_carbon_package_context_images() {
+	$option_name = 'threew_w465_carbon_package_context_images_20260625';
+
+	if ( get_option( $option_name ) ) {
+		return;
+	}
+
+	$context_images = array(
+		array(
+			'url'   => 'https://www.brabus.com/_Resources/Persistent/5/7/f/5/57f5dc75f8691bffa5401310900c62d9936e1a2d/465-234-00-2560x1440.jpg',
+			'title' => 'BRABUS W465 Widestar official front view',
+		),
+		array(
+			'url'   => 'https://www.brabus.com/_Resources/Persistent/8/f/d/9/8fd9f2929ce2d9f338d0b9a2ca806d440f3c3e93/004_BRABUS_G800_Widestar_3_4_rear_no%20Carbon%20and%20ZM-2560x1440.jpg',
+			'title' => 'BRABUS W465 Widestar official rear view',
+		),
+	);
+
+	$results = array();
+
+	foreach ( array( 121947, 121950 ) as $product_id ) {
+		$attachment_ids = threew_storefront_attach_official_images_to_product( $product_id, $context_images );
+
+		if ( ! empty( $attachment_ids ) ) {
+			$results[ $product_id ] = $attachment_ids;
+		}
+	}
+
+	if ( empty( $results ) ) {
+		return;
+	}
+
+	update_option(
+		$option_name,
+		array(
+			'time'    => time(),
+			'results' => $results,
+		),
+		false
+	);
+}
+add_action( 'init', 'threew_storefront_import_w465_carbon_package_context_images', 22 );
 
 add_filter(
 	'woocommerce_loop_add_to_cart_args',
