@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.61
+ * Version: 1.2.62
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.61' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.62' );
 
 add_action(
 	'init',
@@ -767,6 +767,14 @@ function threew_storefront_import_priority_product_official_images() {
 	);
 }
 add_action( 'init', 'threew_storefront_import_priority_product_official_images', 24 );
+
+add_filter(
+	'woocommerce_gla_supported_product_types',
+	static function ( $product_types ) {
+		return array_values( array_diff( (array) $product_types, array( 'variation' ) ) );
+	},
+	20
+);
 
 add_filter(
 	'woocommerce_loop_add_to_cart_args',
