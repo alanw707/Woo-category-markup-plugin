@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.53
+ * Version: 1.2.54
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.53' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.54' );
 
 add_action(
 	'init',
@@ -676,6 +676,38 @@ function threew_storefront_import_w465_carbon_package_context_images() {
 	);
 }
 add_action( 'init', 'threew_storefront_import_w465_carbon_package_context_images', 22 );
+
+function threew_storefront_import_monoblock_f_titanium_official_image() {
+	$option_name = 'threew_monoblock_f_titanium_official_image_20260625';
+
+	if ( get_option( $option_name ) ) {
+		return;
+	}
+
+	$attachment_ids = threew_storefront_attach_official_images_to_product(
+		39952,
+		array(
+			array(
+				'url'   => 'https://www.brabus.com/_Resources/Persistent/3/9/7/9/3979ca2365327a9efa71f24336ad6e85459bffa3/Monoblock%20F%20Titan-2560x1440.jpg',
+				'title' => 'BRABUS Monoblock F Titanium Gunmetal official wheel image',
+			),
+		)
+	);
+
+	if ( empty( $attachment_ids ) ) {
+		return;
+	}
+
+	update_option(
+		$option_name,
+		array(
+			'time'           => time(),
+			'attachment_ids' => $attachment_ids,
+		),
+		false
+	);
+}
+add_action( 'init', 'threew_storefront_import_monoblock_f_titanium_official_image', 23 );
 
 add_filter(
 	'woocommerce_loop_add_to_cart_args',
