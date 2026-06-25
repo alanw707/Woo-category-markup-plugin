@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.50
+ * Version: 1.2.51
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.50' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.51' );
 
 add_action(
 	'init',
@@ -421,6 +421,124 @@ add_filter(
 	20,
 	2
 );
+
+function threew_storefront_find_attachment_by_source_url( $source_url ) {
+	$attachments = get_posts(
+		array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_query'     => array(
+				array(
+					'key'   => '_threew_source_image_url',
+					'value' => esc_url_raw( $source_url ),
+				),
+			),
+		)
+	);
+
+	return empty( $attachments ) ? 0 : (int) $attachments[0];
+}
+
+function threew_storefront_sideload_product_image( $product_id, $source_url, $title ) {
+	$existing_attachment_id = threew_storefront_find_attachment_by_source_url( $source_url );
+
+	if ( $existing_attachment_id ) {
+		return $existing_attachment_id;
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/media.php';
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	$tmp_file = download_url( $source_url, 30 );
+
+	if ( is_wp_error( $tmp_file ) ) {
+		return 0;
+	}
+
+	$file_array = array(
+		'name'     => sanitize_file_name( wp_basename( parse_url( $source_url, PHP_URL_PATH ) ) ),
+		'tmp_name' => $tmp_file,
+	);
+
+	$attachment_id = media_handle_sideload( $file_array, $product_id, $title );
+
+	if ( is_wp_error( $attachment_id ) ) {
+		@unlink( $tmp_file );
+		return 0;
+	}
+
+	update_post_meta( $attachment_id, '_threew_source_image_url', esc_url_raw( $source_url ) );
+	update_post_meta( $attachment_id, '_wp_attachment_image_alt', $title );
+
+	return (int) $attachment_id;
+}
+
+function threew_storefront_import_w465_widestar_official_images() {
+	$option_name = 'threew_w465_widestar_official_images_20260625';
+
+	if ( get_option( $option_name ) ) {
+		return;
+	}
+
+	$product_id = 121906;
+	$product    = function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+
+	if ( ! $product ) {
+		return;
+	}
+
+	$official_images = array(
+		array(
+			'url'   => 'https://www.brabus.com/_Resources/Persistent/5/7/f/5/57f5dc75f8691bffa5401310900c62d9936e1a2d/465-234-00-2560x1440.jpg',
+			'title' => 'BRABUS W465 Widestar Kit official front view',
+		),
+		array(
+			'url'   => 'https://www.brabus.com/_Resources/Persistent/8/f/d/9/8fd9f2929ce2d9f338d0b9a2ca806d440f3c3e93/004_BRABUS_G800_Widestar_3_4_rear_no%20Carbon%20and%20ZM-2560x1440.jpg',
+			'title' => 'BRABUS W465 Widestar Kit official rear view',
+		),
+	);
+
+	$imported_attachment_ids = array();
+
+	foreach ( $official_images as $image ) {
+		$attachment_id = threew_storefront_sideload_product_image( $product_id, $image['url'], $image['title'] );
+
+		if ( $attachment_id ) {
+			$imported_attachment_ids[] = $attachment_id;
+		}
+	}
+
+	if ( empty( $imported_attachment_ids ) ) {
+		return;
+	}
+
+	$gallery_ids = array_filter( array_map( 'absint', $product->get_gallery_image_ids() ) );
+	$gallery_ids = array_values( array_unique( array_merge( $gallery_ids, $imported_attachment_ids ) ) );
+
+	$product->set_gallery_image_ids( $gallery_ids );
+
+	if ( ! $product->get_image_id() ) {
+		$product->set_image_id( $imported_attachment_ids[0] );
+	}
+
+	$product->save();
+	update_option(
+		$option_name,
+		array(
+			'time'           => time(),
+			'product_id'     => $product_id,
+			'attachment_ids' => $imported_attachment_ids,
+		),
+		false
+	);
+
+	do_action( 'litespeed_purge_post', $product_id );
+	do_action( 'litespeed_purge_url', get_permalink( $product_id ) );
+}
+add_action( 'init', 'threew_storefront_import_w465_widestar_official_images', 20 );
 
 add_filter(
 	'woocommerce_loop_add_to_cart_args',
