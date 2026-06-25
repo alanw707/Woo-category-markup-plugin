@@ -20,6 +20,15 @@ Thumbs.db
 # Logs
 *.log
 
+# Dependencies and local agent/tooling state
+node_modules/
+.pi/
+.playwright-mcp/
+.serena/
+
+# Local backups / generated captures
+backups/
+
 # Generated visual verification artifacts
 # Keep text reports/docs, regenerate screenshots when needed.
-docs/screenshots/**/*.png
+docs/screenshots/

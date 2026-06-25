@@ -25,6 +25,7 @@ HOST=${FTP_HOST:-"147.79.122.118"}            # FTP host or IP
 USER=${FTP_USER:-"u659513315.thrwdist"}       # FTP username
 REMOTE_PLUGINS_PATH=${REMOTE_PLUGINS_PATH:-"wp-content/plugins"}
 REMOTE_PLUGIN_SLUG=${REMOTE_PLUGIN_SLUG:-"category-markup"}
+LOCAL_PLUGIN_DIR=${LOCAL_PLUGIN_DIR:-}
 LOCAL_PLUGIN_FILE=${LOCAL_PLUGIN_FILE:-"category-markup/category-markup.php"}
 REMOTE_PLUGIN_FILE=${REMOTE_PLUGIN_FILE:-"category-markup.php"}
 FORCE_TLS=${FORCE_TLS:-true}                   # Require FTPS (explicit TLS)
@@ -39,9 +40,16 @@ if [[ -z "$FTP_PASS" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$LOCAL_PLUGIN_FILE" ]]; then
-  echo "[ERROR] Local plugin file '$LOCAL_PLUGIN_FILE' not found in $(pwd)." >&2
-  exit 1
+if [[ -n "$LOCAL_PLUGIN_DIR" ]]; then
+  if [[ ! -d "$LOCAL_PLUGIN_DIR" ]]; then
+    echo "[ERROR] Local plugin dir '$LOCAL_PLUGIN_DIR' not found in $(pwd)." >&2
+    exit 1
+  fi
+else
+  if [[ ! -f "$LOCAL_PLUGIN_FILE" ]]; then
+    echo "[ERROR] Local plugin file '$LOCAL_PLUGIN_FILE' not found in $(pwd)." >&2
+    exit 1
+  fi
 fi
 
 LFTP_CMD="set cmd:fail-exit true; set net:max-retries 2; set net:timeout 20;"
@@ -64,7 +72,20 @@ fi
 TMP_SCRIPT=$(mktemp)
 trap 'rm -f "$TMP_SCRIPT"' EXIT
 
-cat > "$TMP_SCRIPT" <<EOF
+if [[ -n "$LOCAL_PLUGIN_DIR" ]]; then
+  cat > "$TMP_SCRIPT" <<EOF
+$LFTP_CMD
+open -u "$USER","$FTP_PASS" "$HOST"
+set cmd:fail-exit false
+mkdir -p $REMOTE_PLUGINS_PATH
+mkdir -p $REMOTE_PLUGINS_PATH/$REMOTE_PLUGIN_SLUG
+set cmd:fail-exit true
+mirror -R --delete --verbose "$LOCAL_PLUGIN_DIR" "$REMOTE_PLUGINS_PATH/$REMOTE_PLUGIN_SLUG"
+bye
+EOF
+  echo "[INFO] Uploading plugin dir $LOCAL_PLUGIN_DIR to /$REMOTE_PLUGINS_PATH/$REMOTE_PLUGIN_SLUG ..."
+else
+  cat > "$TMP_SCRIPT" <<EOF
 $LFTP_CMD
 open -u "$USER","$FTP_PASS" "$HOST"
 set cmd:fail-exit false
@@ -75,8 +96,8 @@ cd $REMOTE_PLUGINS_PATH/$REMOTE_PLUGIN_SLUG
 put -O . "$LOCAL_PLUGIN_FILE" -o $REMOTE_PLUGIN_FILE
 bye
 EOF
-
-echo "[INFO] Uploading plugin file as $REMOTE_PLUGIN_FILE to /$REMOTE_PLUGINS_PATH/$REMOTE_PLUGIN_SLUG ..."
+  echo "[INFO] Uploading plugin file as $REMOTE_PLUGIN_FILE to /$REMOTE_PLUGINS_PATH/$REMOTE_PLUGIN_SLUG ..."
+fi
 if lftp -f "$TMP_SCRIPT"; then
   echo "[SUCCESS] Upload complete."
   echo "Next steps:"
