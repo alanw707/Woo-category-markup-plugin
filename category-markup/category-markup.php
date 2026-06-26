@@ -25,6 +25,67 @@ add_filter( 'woocommerce_product_variation_get_regular_price', 'aw_cm_apply_mark
 add_filter( 'woocommerce_product_variation_get_sale_price','aw_cm_apply_markup', 25, 2 );
 add_filter( 'woocommerce_variation_prices',                'aw_cm_apply_variation_prices', 25, 3 );
 
+function aw_cm_product_category_terms( $product ) {
+    $product_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
+    if ( ! $product_id ) {
+        return [];
+    }
+
+    $terms = get_the_terms( $product_id, 'product_cat' );
+    return ( empty( $terms ) || is_wp_error( $terms ) ) ? [] : $terms;
+}
+
+function aw_cm_resolve_markup_percent( $product, $terms = null ) {
+    $terms = null === $terms ? aw_cm_product_category_terms( $product ) : $terms;
+    if ( empty( $terms ) ) {
+        return 0.0;
+    }
+
+    $markups = apply_filters( 'aw_category_markups', AW_CATEGORY_MARKUPS, $product );
+    $markups = is_array( $markups ) ? $markups : [];
+
+    foreach ( $terms as $term ) {
+        $value = get_term_meta( $term->term_id, '_aw_markup_percent', true );
+        if ( $value !== '' && is_numeric( $value ) ) {
+            $markups[ $term->slug ] = (float) $value;
+        }
+    }
+
+    $slugs = wp_list_pluck( $terms, 'slug' );
+    if ( isset( $markups['brabus'] ) ) {
+        foreach ( $slugs as $slug ) {
+            if ( ( $slug === 'brabus' || strpos( $slug, 'brabus-' ) === 0 ) && ! array_key_exists( $slug, $markups ) ) {
+                $markups[ $slug ] = $markups['brabus'];
+            }
+        }
+    }
+
+    $matched = array_values( array_intersect( array_keys( $markups ), $slugs ) );
+    if ( empty( $matched ) ) {
+        return 0.0;
+    }
+
+    $strategy = apply_filters( 'aw_markup_strategy', AW_MARKUP_STRATEGY, $product, $matched, $markups );
+    switch ( $strategy ) {
+        case 'first':
+            foreach ( $markups as $slug => $percent ) {
+                if ( in_array( $slug, $matched, true ) ) {
+                    return (float) $percent;
+                }
+            }
+            return 0.0;
+        case 'sum':
+            return array_sum( array_map( 'floatval', array_intersect_key( $markups, array_flip( $matched ) ) ) );
+        case 'max':
+        default:
+            return max( array_map( 'floatval', array_intersect_key( $markups, array_flip( $matched ) ) ) );
+    }
+}
+
+function aw_cm_is_empty_price( $price ) {
+    return $price === '' || $price === null;
+}
+
 function aw_cm_apply_markup( $price, $product ) {
     if ( AW_FRONTEND_ONLY && is_admin() && ! defined( 'DOING_AJAX' ) ) {
         return $price;
@@ -45,99 +106,27 @@ function aw_cm_apply_markup( $price, $product ) {
             break;
     }
 
-    $product_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
-    if ( ! $product_id ) {
-        return $price;
-    }
-
-    $terms = get_the_terms( $product_id, 'product_cat' );
-    if ( empty( $terms ) || is_wp_error( $terms ) ) {
-        return $price;
-    }
-
-    $static = apply_filters( 'aw_category_markups', AW_CATEGORY_MARKUPS, $product );
-    if ( ! is_array( $static ) ) {
-        $static = [];
-    }
-
-    $dynamic = [];
-    foreach ( $terms as $term ) {
-        $v = get_term_meta( $term->term_id, '_aw_markup_percent', true );
-        if ( $v !== '' && is_numeric( $v ) ) {
-            $dynamic[ $term->slug ] = (float) $v;
-        }
-    }
-
-    $merged = array_merge( $static, $dynamic );
-    if ( empty( $merged ) ) {
-        return $price;
-    }
-
-    $slugs = wp_list_pluck( $terms, 'slug' );
-
-    // Allow base "brabus" markup to cascade to slugs like "brabus-mercedes" automatically.
-    if ( isset( $merged['brabus'] ) ) {
-        foreach ( $slugs as $term_slug ) {
-            if ( $term_slug === 'brabus' || strpos( $term_slug, 'brabus-' ) === 0 ) {
-                if ( ! array_key_exists( $term_slug, $merged ) ) {
-                    $merged[ $term_slug ] = $merged['brabus'];
-                }
-            }
-        }
-    }
-
-    $matched = array_values( array_intersect( array_keys( $merged ), $slugs ) );
-    if ( empty( $matched ) ) {
-        return $price;
-    }
-
-    $strategy = apply_filters( 'aw_markup_strategy', AW_MARKUP_STRATEGY, $product, $matched, $merged );
-    $markup_percent = 0.0;
-    switch ( $strategy ) {
-        case 'first':
-            foreach ( $merged as $slug => $pct ) {
-                if ( in_array( $slug, $matched, true ) ) {
-                    $markup_percent = (float) $pct;
-                    break;
-                }
-            }
-            break;
-        case 'sum':
-            foreach ( $matched as $slug ) {
-                $markup_percent += (float) $merged[ $slug ];
-            }
-            break;
-        case 'max':
-        default:
-            $candidates = [];
-            foreach ( $matched as $slug ) {
-                $candidates[] = (float) $merged[ $slug ];
-            }
-            $markup_percent = max( $candidates );
-            break;
-    }
-
+    $markup_percent = aw_cm_resolve_markup_percent( $product );
     if ( $markup_percent <= 0 ) {
         return $price;
     }
 
-    if ( $context === 'regular' ) {
-        if ( $price === '' || $price === null ) {
-            return $price;
-        }
-        $base_price = (float) $price;
-    } elseif ( $context === 'sale' ) {
-        if ( ! AW_APPLY_TO_SALE_PRICE || $price === '' || $price === null ) {
+    if ( 'sale' === $context && ! AW_APPLY_TO_SALE_PRICE ) {
+        return $price;
+    }
+
+    if ( 'regular' === $context || 'sale' === $context ) {
+        if ( aw_cm_is_empty_price( $price ) ) {
             return $price;
         }
         $base_price = (float) $price;
     } else {
         $regular_raw = $product->get_regular_price( 'edit' );
         $sale_raw    = $product->get_sale_price( 'edit' );
-        $base_source = ( AW_APPLY_TO_SALE_PRICE && $sale_raw !== '' ) ? $sale_raw : $regular_raw;
+        $base_source = ( AW_APPLY_TO_SALE_PRICE && ! aw_cm_is_empty_price( $sale_raw ) ) ? $sale_raw : $regular_raw;
 
-        if ( $base_source === '' || $base_source === null ) {
-            if ( $price === '' || $price === null ) {
+        if ( aw_cm_is_empty_price( $base_source ) ) {
+            if ( aw_cm_is_empty_price( $price ) ) {
                 return $price;
             }
             $base_source = $price;
@@ -163,77 +152,7 @@ function aw_cm_apply_variation_prices( $prices_array, $product, $for_display ) {
         return $prices_array;
     }
 
-    $product_id = $product->get_id();
-    if ( ! $product_id ) {
-        return $prices_array;
-    }
-
-    $terms = get_the_terms( $product_id, 'product_cat' );
-    if ( empty( $terms ) || is_wp_error( $terms ) ) {
-        return $prices_array;
-    }
-
-    $static = apply_filters( 'aw_category_markups', AW_CATEGORY_MARKUPS, $product );
-    if ( ! is_array( $static ) ) {
-        $static = [];
-    }
-
-    $dynamic = [];
-    foreach ( $terms as $term ) {
-        $v = get_term_meta( $term->term_id, '_aw_markup_percent', true );
-        if ( $v !== '' && is_numeric( $v ) ) {
-            $dynamic[ $term->slug ] = (float) $v;
-        }
-    }
-
-    $merged = array_merge( $static, $dynamic );
-    if ( empty( $merged ) ) {
-        return $prices_array;
-    }
-
-    $slugs = wp_list_pluck( $terms, 'slug' );
-
-    if ( isset( $merged['brabus'] ) ) {
-        foreach ( $slugs as $term_slug ) {
-            if ( $term_slug === 'brabus' || strpos( $term_slug, 'brabus-' ) === 0 ) {
-                if ( ! array_key_exists( $term_slug, $merged ) ) {
-                    $merged[ $term_slug ] = $merged['brabus'];
-                }
-            }
-        }
-    }
-
-    $matched = array_values( array_intersect( array_keys( $merged ), $slugs ) );
-    if ( empty( $matched ) ) {
-        return $prices_array;
-    }
-
-    $strategy = apply_filters( 'aw_markup_strategy', AW_MARKUP_STRATEGY, $product, $matched, $merged );
-    $markup_percent = 0.0;
-    switch ( $strategy ) {
-        case 'first':
-            foreach ( $merged as $slug => $pct ) {
-                if ( in_array( $slug, $matched, true ) ) {
-                    $markup_percent = (float) $pct;
-                    break;
-                }
-            }
-            break;
-        case 'sum':
-            foreach ( $matched as $slug ) {
-                $markup_percent += (float) $merged[ $slug ];
-            }
-            break;
-        case 'max':
-        default:
-            $candidates = [];
-            foreach ( $matched as $slug ) {
-                $candidates[] = (float) $merged[ $slug ];
-            }
-            $markup_percent = max( $candidates );
-            break;
-    }
-
+    $markup_percent = aw_cm_resolve_markup_percent( $product );
     if ( $markup_percent <= 0 ) {
         return $prices_array;
     }
@@ -241,16 +160,20 @@ function aw_cm_apply_variation_prices( $prices_array, $product, $for_display ) {
     $multiplier = ( 100 + $markup_percent ) / 100;
 
     foreach ( $prices_array as $price_key => $variation_prices ) {
-        if ( is_array( $variation_prices ) ) {
-            foreach ( $variation_prices as $variation_id => $price ) {
-                if ( $price !== '' && is_numeric( $price ) ) {
-                    $new_price = (float) $price * $multiplier;
-                    if ( AW_ROUND_PRICE ) {
-                        $new_price = round( $new_price, wc_get_price_decimals() );
-                    }
-                    $prices_array[ $price_key ][ $variation_id ] = $new_price;
-                }
+        if ( ! is_array( $variation_prices ) ) {
+            continue;
+        }
+
+        foreach ( $variation_prices as $variation_id => $price ) {
+            if ( aw_cm_is_empty_price( $price ) || ! is_numeric( $price ) ) {
+                continue;
             }
+
+            $new_price = (float) $price * $multiplier;
+            if ( AW_ROUND_PRICE ) {
+                $new_price = round( $new_price, wc_get_price_decimals() );
+            }
+            $prices_array[ $price_key ][ $variation_id ] = $new_price;
         }
     }
 
@@ -287,31 +210,23 @@ function aw_cm_save_term_meta( $term_id ) {
 }
 
 add_filter( 'woocommerce_get_price_hash', function( $hash, $product ) {
-    $product_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
+    $terms = aw_cm_product_category_terms( $product );
 
-    // Include category slugs so different categories get different cached prices
-    $terms = get_the_terms( $product_id, 'product_cat' );
-    $category_slugs = ( ! empty( $terms ) && ! is_wp_error( $terms ) )
-        ? wp_list_pluck( $terms, 'slug' )
-        : [];
-
-    // Include dynamic term meta so cache invalidates when markup percentages change
     $dynamic_markups = [];
-    if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-        foreach ( $terms as $term ) {
-            $meta_value = get_term_meta( $term->term_id, '_aw_markup_percent', true );
-            if ( $meta_value !== '' ) {
-                $dynamic_markups[ $term->slug ] = $meta_value;
-            }
+    foreach ( $terms as $term ) {
+        $meta_value = get_term_meta( $term->term_id, '_aw_markup_percent', true );
+        if ( $meta_value !== '' ) {
+            $dynamic_markups[ $term->slug ] = $meta_value;
         }
     }
 
     $hash['aw_cm'] = [
-        'static'          => AW_CATEGORY_MARKUPS,
-        'strategy'        => AW_MARKUP_STRATEGY,
-        'saleBase'        => AW_APPLY_TO_SALE_PRICE,
-        'categories'      => $category_slugs,
-        'dynamic_markups' => $dynamic_markups,
+        'static'           => apply_filters( 'aw_category_markups', AW_CATEGORY_MARKUPS, $product ),
+        'strategy'         => AW_MARKUP_STRATEGY,
+        'saleBase'         => AW_APPLY_TO_SALE_PRICE,
+        'categories'       => wp_list_pluck( $terms, 'slug' ),
+        'dynamic_markups'  => $dynamic_markups,
+        'resolved_percent' => aw_cm_resolve_markup_percent( $product, $terms ),
     ];
     return $hash;
 }, 10, 2 );

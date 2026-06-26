@@ -1,0 +1,71 @@
+#threew-newsletter-popup[hidden] {
+  display: none;
+}
+
+#threew-newsletter-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.threew-np-dialog {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 28px;
+  border-radius: 14px;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.threew-np-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.threew-np-form label {
+  display: block;
+  margin: 14px 0;
+}
+
+.threew-np-form input[type="email"] {
+  width: 100%;
+  padding: 12px;
+}
+
+.threew-np-consent {
+  display: flex !important;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 14px;
+}
+
+.threew-np-form button[type="submit"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+}
+
+.threew-np-status {
+  min-height: 20px;
+  color: #b00020;
+}
+
+.threew-np-success {
+  font-size: 18px;
+  text-align: center;
+}
