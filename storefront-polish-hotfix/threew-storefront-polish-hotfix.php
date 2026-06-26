@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.71
+ * Version: 1.2.72
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.71' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.72' );
 
 add_action(
 	'init',
@@ -1323,6 +1323,64 @@ add_action(
 			body.home .home-banner .porto-ibanner,
 			body.home .home-banner .porto-ibanner-img {
 				width: 100% !important;
+			}
+
+			/* Hide broken gray promo placeholder before dealer strip. */
+			body.home .home-mid-banner,
+			body.home .threew-promo-panel {
+				display: none !important;
+			}
+
+			/* Tablet product carousels: disable clipped owl transforms and render as stable grid. */
+			@media (min-width: 601px) and (max-width: 991px) {
+				body.home ul.products.products-slider.owl-carousel {
+					display: grid !important;
+					grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+					gap: 26px 18px !important;
+					width: 100% !important;
+					max-width: 100% !important;
+					margin: 0 !important;
+					padding: 0 !important;
+					overflow: visible !important;
+					list-style: none !important;
+				}
+
+				body.home ul.products.products-slider.owl-carousel .owl-stage-outer,
+				body.home ul.products.products-slider.owl-carousel .owl-stage {
+					display: contents !important;
+					width: auto !important;
+					height: auto !important;
+					transform: none !important;
+				}
+
+				body.home ul.products.products-slider.owl-carousel .owl-item {
+					display: block !important;
+					width: auto !important;
+					max-width: none !important;
+					margin: 0 !important;
+					padding: 0 !important;
+					transform: none !important;
+					opacity: 1 !important;
+					filter: none !important;
+				}
+
+				body.home ul.products.products-slider.owl-carousel .owl-item.cloned,
+				body.home ul.products.products-slider.owl-carousel .owl-nav,
+				body.home ul.products.products-slider.owl-carousel .owl-dots {
+					display: none !important;
+				}
+
+				body.home ul.products.products-slider.owl-carousel .product-col,
+				body.home ul.products.products-slider.owl-carousel li.product {
+					box-sizing: border-box !important;
+					width: 100% !important;
+					max-width: 100% !important;
+					min-width: 0 !important;
+					margin: 0 !important;
+					padding: 0 !important;
+					float: none !important;
+					justify-self: stretch !important;
+				}
 			}
 
 			/* Product card rhythm and hierarchy. */
