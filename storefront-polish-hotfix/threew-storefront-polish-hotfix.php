@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.64
+ * Version: 1.2.65
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.64' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.65' );
 
 add_action(
 	'init',
@@ -964,6 +964,19 @@ function threew_storefront_add_product_facts_tab( $tabs ) {
 }
 add_filter( 'woocommerce_product_tabs', 'threew_storefront_add_product_facts_tab', 20 );
 
+function threew_storefront_render_parts_only_notice() {
+	global $product;
+
+	if ( ! $product || 121906 !== (int) $product->get_id() ) {
+		return;
+	}
+
+	echo '<div class="threew-parts-only-notice" role="note">';
+	echo '<strong>Parts-only listing:</strong> This product is a BRABUS exterior parts kit. Any complete vehicle shown in photos is for fitment and installed-reference context only and is not included with purchase.';
+	echo '</div>';
+}
+add_action( 'woocommerce_single_product_summary', 'threew_storefront_render_parts_only_notice', 24 );
+
 function threew_storefront_render_product_facts_tab() {
 	global $product;
 
@@ -981,6 +994,9 @@ function threew_storefront_render_product_facts_tab() {
 
 	echo '<div class="threew-product-facts">';
 	echo '<p>This section summarizes key buying and fitment details for customers evaluating premium automotive parts from 3W Distributing.</p>';
+	if ( 121906 === $product_id ) {
+		echo '<p><strong>Parts-only listing:</strong> This product is a BRABUS exterior parts kit. Any complete vehicle shown in photos is for fitment and installed-reference context only and is not included with purchase.</p>';
+	}
 	echo '<ul>';
 	echo '<li><strong>Product:</strong> ' . esc_html( wp_strip_all_tags( $product->get_name() ) ) . '</li>';
 
@@ -1050,6 +1066,18 @@ add_action(
 			/* Keep floating chat from covering final product/content lines. */
 			body.home {
 				padding-bottom: 96px;
+			}
+
+			.threew-parts-only-notice {
+				margin: 14px 0;
+				padding: 12px 14px;
+				border: 1px solid #d7dde5;
+				border-left: 4px solid var(--threew-accent);
+				border-radius: 6px;
+				background: #f8fafc;
+				color: var(--threew-text-strong);
+				font-size: 14px;
+				line-height: 1.5;
 			}
 
 			/* Porto/WPBakery can leak page metadata/builder placeholders in logged-in mobile previews. */
