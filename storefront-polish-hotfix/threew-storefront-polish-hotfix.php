@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.67
+ * Version: 1.2.70
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.67' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.70' );
 
 add_action(
 	'init',
@@ -1211,7 +1211,18 @@ add_action(
 				body.home .header-actions {
 					display: inline-flex !important;
 					align-items: center !important;
-					gap: 8px !important;
+					gap: 12px !important;
+				}
+
+				/* Even spacing for all header elements. */
+				body.home header .logo,
+				body.home header .searchform,
+				body.home header .mini-cart,
+				body.home header .mobile-toggle,
+				body.home header .cart-toggle,
+				body.home header .header-icon {
+					margin-left: 0 !important;
+					margin-right: 0 !important;
 				}
 
 				/* Fix diamond / secondary icon alignment so it sits inline, not below. */
@@ -1237,20 +1248,34 @@ add_action(
 				body.home .cart-badge:empty,
 				body.home .cart-count:empty,
 				body.home .cart-items-count:empty,
+				body.home .cart-items:empty,
+				body.home .cart-items-text:empty,
 				body.home .mini-cart .cart-badge[data-count="0"],
 				body.home .mini-cart .cart-count[data-count="0"],
+				body.home .mini-cart .cart-items[data-count="0"],
+				body.home .mini-cart .cart-items-text[data-count="0"],
 				body.home #mini-cart .cart-badge[data-count="0"],
 				body.home #mini-cart .cart-count[data-count="0"],
+				body.home #mini-cart .cart-items[data-count="0"],
+				body.home #mini-cart .cart-items-text[data-count="0"],
 				body.home .cart-toggle .cart-badge[data-count="0"],
 				body.home .cart-toggle .cart-count[data-count="0"],
+				body.home .cart-toggle .cart-items[data-count="0"],
+				body.home .cart-toggle .cart-items-text[data-count="0"],
 				body.home .header-icon .cart-badge[data-count="0"],
-				body.home .header-icon .cart-count[data-count="0"] {
+				body.home .header-icon .cart-count[data-count="0"],
+				body.home .header-icon .cart-items[data-count="0"],
+				body.home .header-icon .cart-items-text[data-count="0"],
+				body.home .cart-icon .cart-items:empty,
+				body.home .cart-icon .cart-items-text:empty {
 					display: none !important;
 				}
 
 				/* If badge is present but count is 0, hide the numeric badge. */
 				body.home .cart-count,
-				body.home .cart-badge {
+				body.home .cart-badge,
+				body.home .cart-items,
+				body.home .cart-items-text {
 					background: #6c757d !important;
 					color: #fff !important;
 					font-size: 10px !important;
@@ -1631,7 +1656,7 @@ add_action(
 					position: fixed;
 					top: 23px;
 					left: 64px;
-					right: 120px;
+					right: 100px;
 					z-index: 1004;
 					padding: 0;
 					background: transparent;
@@ -1655,7 +1680,7 @@ add_action(
 					display: flex !important;
 					align-items: center !important;
 					width: 100% !important;
-					height: 46px !important;
+					height: 40px !important;
 					background: #fff !important;
 					border: 1px solid rgba(255, 255, 255, .2) !important;
 					border-radius: 999px !important;
@@ -1672,7 +1697,7 @@ add_action(
 				body .threew-mobile-header-search input[type="search"] {
 					box-sizing: border-box !important;
 					width: 100% !important;
-					height: 46px !important;
+					height: 40px !important;
 					min-width: 0 !important;
 					max-width: 100% !important;
 					flex: 1 1 auto !important;
@@ -1680,7 +1705,7 @@ add_action(
 					border: 0 !important;
 					box-shadow: none !important;
 					font-size: 15px !important;
-					line-height: 46px !important;
+					line-height: 40px !important;
 				}
 
 				body .threew-mobile-header-search button[type="submit"] {
@@ -1689,9 +1714,9 @@ add_action(
 					inset: auto !important;
 					align-items: center !important;
 					justify-content: center !important;
-					flex: 0 0 48px !important;
-					width: 48px !important;
-					height: 46px !important;
+					flex: 0 0 44px !important;
+					width: 44px !important;
+					height: 40px !important;
 					margin: 0 !important;
 					transform: none !important;
 					color: #fff !important;
@@ -1702,6 +1727,24 @@ add_action(
 
 				body .threew-mobile-header-search button[type="submit"] i {
 					color: #fff !important;
+				}
+
+				/* Hide cart popup arrow/diamond without hiding the popup content. */
+				body.home .cart-loading,
+				body.home .cart-popup::before,
+				body.home .cart-popup::after,
+				body.home .widget_shopping_cart::before,
+				body.home .widget_shopping_cart::after,
+				body.home .cart-icon::after,
+				body.home .mini-cart::after,
+				body.home #mini-cart::after,
+				body.home .cart-toggle::after,
+				body.home .cart-head::after,
+				body.home .cart-icon .diamond,
+				body.home .cart-head .diamond,
+				body.home .mini-cart .diamond,
+				body.home [class*="cart"] .diamond {
+					display: none !important;
 				}
 
 				body:not(.home) .threew-mobile-header-search {
@@ -2881,6 +2924,14 @@ add_action(
 					});
 				}
 
+				function hideEmptyCartBadge() {
+					document.querySelectorAll('.cart-items, .cart-items-text').forEach(function (el) {
+						if (el.textContent.trim() === '0') {
+							el.style.display = 'none';
+						}
+					});
+				}
+
 				function optimizeCatalogImages() {
 					var isCatalog = document.body.classList.contains('woocommerce-shop') ||
 						document.body.classList.contains('post-type-archive-product') ||
@@ -2927,6 +2978,7 @@ add_action(
 					markMobilePolishBlocks();
 					normalizeSearchForms();
 					labelIconControls();
+					hideEmptyCartBadge();
 					optimizeCatalogImages();
 				});
 
@@ -2940,6 +2992,9 @@ add_action(
 				window.setTimeout(normalizeSearchForms, 600);
 				window.setTimeout(normalizeSearchForms, 1600);
 				window.setTimeout(labelIconControls, 600);
+				window.setTimeout(hideEmptyCartBadge, 300);
+				window.setTimeout(hideEmptyCartBadge, 900);
+				window.setTimeout(hideEmptyCartBadge, 1800);
 				window.setTimeout(optimizeCatalogImages, 300);
 				window.setTimeout(optimizeCatalogImages, 900);
 				window.setTimeout(optimizeCatalogImages, 1800);
