@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.65
+ * Version: 1.2.67
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.65' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.67' );
 
 add_action(
 	'init',
@@ -1181,6 +1181,96 @@ add_action(
 
 			body.home .header-side .searchform button[type="submit"] {
 				flex: 0 0 44px !important;
+				border: none !important;
+				border-radius: 0 999px 999px 0 !important;
+			}
+
+			/* Mobile header: fix icon alignment, search width, and cart badge. */
+			@media (max-width: 767px) {
+				body.home header .searchform.search-layout-advanced,
+				body.home .header-side .searchform.search-layout-advanced,
+				body.home .side-nav .searchform.search-layout-advanced {
+					width: 200px !important;
+					max-width: 200px !important;
+					min-width: 0 !important;
+				}
+
+				body.home .header-side .searchform .searchform-fields {
+					width: 100% !important;
+				}
+
+				body.home .header-side .searchform input[type="text"],
+				body.home .header-side .searchform input[type="search"] {
+					padding-left: 10px !important;
+					font-size: 14px !important;
+				}
+
+				/* Header icon row: consistent spacing and alignment. */
+				body.home .header-right,
+				body.home .header-icons,
+				body.home .header-actions {
+					display: inline-flex !important;
+					align-items: center !important;
+					gap: 8px !important;
+				}
+
+				/* Fix diamond / secondary icon alignment so it sits inline, not below. */
+				body.home .header-right .icon-diamond,
+				body.home .header-icons .icon-diamond,
+				body.home .header-right .diamond-icon,
+				body.home .header-icons .diamond-icon,
+				body.home .header-right [class*="diamond"],
+				body.home .header-icons [class*="diamond"] {
+					display: inline-flex !important;
+					align-items: center !important;
+					justify-content: center !important;
+					vertical-align: middle !important;
+					margin: 0 !important;
+					padding: 0 !important;
+					position: static !important;
+					transform: none !important;
+					top: auto !important;
+					bottom: auto !important;
+				}
+
+				/* Hide empty cart badge (0) or make it neutral. */
+				body.home .cart-badge:empty,
+				body.home .cart-count:empty,
+				body.home .cart-items-count:empty,
+				body.home .mini-cart .cart-badge[data-count="0"],
+				body.home .mini-cart .cart-count[data-count="0"],
+				body.home #mini-cart .cart-badge[data-count="0"],
+				body.home #mini-cart .cart-count[data-count="0"],
+				body.home .cart-toggle .cart-badge[data-count="0"],
+				body.home .cart-toggle .cart-count[data-count="0"],
+				body.home .header-icon .cart-badge[data-count="0"],
+				body.home .header-icon .cart-count[data-count="0"] {
+					display: none !important;
+				}
+
+				/* If badge is present but count is 0, hide the numeric badge. */
+				body.home .cart-count,
+				body.home .cart-badge {
+					background: #6c757d !important;
+					color: #fff !important;
+					font-size: 10px !important;
+					min-width: 18px !important;
+					height: 18px !important;
+					line-height: 18px !important;
+					padding: 0 4px !important;
+					border-radius: 9px !important;
+				}
+			}
+
+			/* Cart popup: ensure it floats above hero and content sections. */
+			body.home .mini-cart .cart-popup,
+			body.home #mini-cart .cart-popup,
+			body.home .cart-toggle .cart-popup,
+			body.home .header-main .mini-cart .cart-popup,
+			body.home .widget_shopping_cart,
+			body.home .mini-cart .widget_shopping_cart,
+			body.home #mini-cart .widget_shopping_cart {
+				z-index: 1006 !important;
 			}
 
 			/* Hero: freeze carousel to one full-width slide so users never catch split transitions. */
@@ -1606,6 +1696,8 @@ add_action(
 					transform: none !important;
 					color: #fff !important;
 					background: var(--threew-accent) !important;
+					border: none !important;
+					border-radius: 0 999px 999px 0 !important;
 				}
 
 				body .threew-mobile-header-search button[type="submit"] i {
