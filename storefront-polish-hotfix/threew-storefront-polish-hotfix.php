@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.63
+ * Version: 1.2.64
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.63' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.64' );
 
 add_action(
 	'init',
@@ -880,6 +880,7 @@ function threew_storefront_handle_llms_txt() {
 		'- Business name: 3W Distributing LLC',
 		'- Shop site: https://shop.3wdistributing.com/',
 		'- Main site: https://www.3wdistributing.com/',
+		'- Main site LLM source map: https://www.3wdistributing.com/llms.txt',
 		'- Location: 5140 Rogers Street Ste C, Las Vegas, NV 89118',
 		'- Phone: (702) 430-6622',
 		'- Email: info@3wdistributing.com',
@@ -889,10 +890,9 @@ function threew_storefront_handle_llms_txt() {
 		'',
 		'- [Shop home](https://shop.3wdistributing.com/): premium automotive parts ecommerce storefront.',
 		'- [BRABUS category](https://shop.3wdistributing.com/product-category/brabus/): BRABUS wheels, carbon fiber parts, G-Wagon upgrades, exhaust, interior, and W465 products.',
-		'- [W465 category](https://shop.3wdistributing.com/product-category/brabus/brabus-mercedes/g-wagon/w465/): latest-generation Mercedes-AMG G63 / G-Class BRABUS parts.',
+		'- [W465 category](https://shop.3wdistributing.com/product-category/brabus/brabus-mercedes/g-wagon/gwagon-w465/): latest-generation Mercedes-AMG G63 / G-Class BRABUS parts.',
 		'- [Contact](https://shop.3wdistributing.com/contact-us/): contact and sales inquiries.',
 		'- [Shipping and returns](https://shop.3wdistributing.com/shipping-and-returns-policy/): shipping and return policy.',
-		'- [Payments](https://shop.3wdistributing.com/payments/): payment information.',
 		'',
 		'## Main-Site Buying Guides',
 		'',
