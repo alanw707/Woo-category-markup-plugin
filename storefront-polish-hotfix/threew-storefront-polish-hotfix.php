@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 3W Storefront Polish Hotfix
  * Description: Small design and accessibility polish fixes for the 3W Distributing Porto storefront homepage.
- * Version: 1.2.70
+ * Version: 1.2.71
  * Author: 3W Distributing
  */
 
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.70' );
+define( 'THREEW_STOREFRONT_POLISH_VERSION', '1.2.71' );
 
 add_action(
 	'init',
@@ -1656,7 +1656,7 @@ add_action(
 					position: fixed;
 					top: 23px;
 					left: 64px;
-					right: 100px;
+					right: 116px;
 					z-index: 1004;
 					padding: 0;
 					background: transparent;
@@ -1680,7 +1680,7 @@ add_action(
 					display: flex !important;
 					align-items: center !important;
 					width: 100% !important;
-					height: 40px !important;
+					height: 44px !important;
 					background: #fff !important;
 					border: 1px solid rgba(255, 255, 255, .2) !important;
 					border-radius: 999px !important;
@@ -1697,7 +1697,7 @@ add_action(
 				body .threew-mobile-header-search input[type="search"] {
 					box-sizing: border-box !important;
 					width: 100% !important;
-					height: 40px !important;
+					height: 44px !important;
 					min-width: 0 !important;
 					max-width: 100% !important;
 					flex: 1 1 auto !important;
@@ -1705,7 +1705,7 @@ add_action(
 					border: 0 !important;
 					box-shadow: none !important;
 					font-size: 15px !important;
-					line-height: 40px !important;
+					line-height: 44px !important;
 				}
 
 				body .threew-mobile-header-search button[type="submit"] {
@@ -1716,7 +1716,7 @@ add_action(
 					justify-content: center !important;
 					flex: 0 0 44px !important;
 					width: 44px !important;
-					height: 40px !important;
+					height: 44px !important;
 					margin: 0 !important;
 					transform: none !important;
 					color: #fff !important;
