@@ -635,6 +635,15 @@ add_action(
 					overflow-x: hidden;
 				}
 
+				/* Modern Cart overlaps WhatsApp on mobile; pin it to the opposite safe corner. */
+				body #moderncart-floating-cart {
+					top: calc(100vh - 76px) !important;
+					right: auto !important;
+					bottom: auto !important;
+					left: 16px !important;
+					transform: none !important;
+				}
+
 				body.home .mobile-toggle,
 				body.home #mini-cart,
 				body.home .mini-cart,
@@ -2981,6 +2990,20 @@ add_action(
 					return window.matchMedia('(max-width: 600px)').matches;
 				}
 
+				function positionModernCartButton() {
+					var cart = document.getElementById('moderncart-floating-cart');
+
+					if (!cart || !window.matchMedia('(max-width: 767px)').matches) {
+						return;
+					}
+
+					cart.style.setProperty('top', 'calc(100vh - 76px)', 'important');
+					cart.style.setProperty('right', 'auto', 'important');
+					cart.style.setProperty('bottom', 'auto', 'important');
+					cart.style.setProperty('left', '16px', 'important');
+					cart.style.setProperty('transform', 'none', 'important');
+				}
+
 				function isMobileHome() {
 					return document.body.classList.contains('home') && isMobile();
 				}
@@ -3651,6 +3674,7 @@ add_action(
 					refreshMiniCartFragments();
 					optimizeCatalogImages();
 					bindMobileCatalogFilters();
+					positionModernCartButton();
 				});
 
 				window.setTimeout(stabilizeHeroCarousel, 600);
@@ -3678,6 +3702,9 @@ add_action(
 				window.setTimeout(optimizeCatalogImages, 1800);
 				window.setTimeout(bindMobileCatalogFilters, 600);
 				window.setTimeout(bindMobileCatalogFilters, 1600);
+				window.setTimeout(positionModernCartButton, 300);
+				window.setTimeout(positionModernCartButton, 900);
+				window.setTimeout(positionModernCartButton, 1800);
 			})();
 		</script>
 		<?php
