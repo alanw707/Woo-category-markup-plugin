@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const THREEW_GOOGLE_REVIEWS_URL = 'https://share.google/LZQ9Kw1ok4qVabLpg';
+const THREEW_GOOGLE_REVIEWS_URL = 'https://maps.app.goo.gl/MMheoaH4VyDr6RUc9';
 
 add_action(
 	'wp_footer',
@@ -70,7 +70,7 @@ add_action(
 				text-decoration: underline;
 			}
 			.threew-google-trust-badge__stars {
-				color: #fbbc04;
+				color: #fbbc04 !important;
 				letter-spacing: 1px;
 			}
 			.threew-google-trust-badge--hero {
@@ -78,10 +78,11 @@ add_action(
 				text-align: left;
 			}
 			.threew-google-trust-badge--hero .threew-google-trust-badge__link {
-				padding: 8px 12px;
+				padding: 7px 11px;
 				border-radius: 999px;
 				background: rgba(0, 0, 0, .62);
 				color: #fff;
+				font-size: 12px;
 				font-weight: 600;
 				opacity: 1;
 			}
@@ -93,8 +94,8 @@ add_action(
 					margin-top: 12px;
 				}
 				.threew-google-trust-badge--hero .threew-google-trust-badge__link {
-					padding: 7px 10px;
-					font-size: 11px;
+					padding: 6px 9px;
+					font-size: 10px;
 				}
 			}
 		</style>
