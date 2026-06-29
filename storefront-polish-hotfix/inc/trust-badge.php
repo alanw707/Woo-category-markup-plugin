@@ -30,6 +30,14 @@ add_action(
 				}
 				footer.appendChild(badge);
 				badge.hidden = false;
+
+				var hero = document.querySelector('.threew-hero-static .porto-ibanner-layer, .home-banner .porto-ibanner-layer');
+				if (hero) {
+					var heroBadge = badge.cloneNode(true);
+					heroBadge.id = 'threew-google-trust-badge-hero';
+					heroBadge.className += ' threew-google-trust-badge--hero';
+					hero.appendChild(heroBadge);
+				}
 			}());
 		</script>
 		<?php
@@ -65,9 +73,28 @@ add_action(
 				color: #fbbc04;
 				letter-spacing: 1px;
 			}
+			.threew-google-trust-badge--hero {
+				margin: 16px 0 0;
+				text-align: left;
+			}
+			.threew-google-trust-badge--hero .threew-google-trust-badge__link {
+				padding: 8px 12px;
+				border-radius: 999px;
+				background: rgba(0, 0, 0, .62);
+				color: #fff;
+				font-weight: 600;
+				opacity: 1;
+			}
 			@media (max-width: 480px) {
 				.threew-google-trust-badge {
 					font-size: 12px;
+				}
+				.threew-google-trust-badge--hero {
+					margin-top: 12px;
+				}
+				.threew-google-trust-badge--hero .threew-google-trust-badge__link {
+					padding: 7px 10px;
+					font-size: 11px;
 				}
 			}
 		</style>
