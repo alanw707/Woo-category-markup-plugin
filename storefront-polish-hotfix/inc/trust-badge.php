@@ -17,7 +17,7 @@ add_action(
 		?>
 		<div id="threew-google-trust-badge" class="threew-google-trust-badge" hidden>
 			<a class="threew-google-trust-badge__link" href="<?php echo esc_url( THREEW_GOOGLE_REVIEWS_URL ); ?>" aria-label="Read 3W Distributing reviews on Google">
-				<span class="threew-google-trust-badge__stars" aria-hidden="true">★★★★★</span>
+				<span class="threew-google-trust-badge__stars" style="color:#fbbc04;-webkit-text-fill-color:#fbbc04;" aria-hidden="true">★★★★★</span>
 				<span>Rated on Google · Read reviews</span>
 			</a>
 		</div>
