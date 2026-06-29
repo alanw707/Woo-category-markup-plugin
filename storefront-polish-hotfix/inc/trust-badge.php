@@ -24,7 +24,7 @@ add_action(
 		<script>
 			(function () {
 				var badge = document.getElementById('threew-google-trust-badge');
-				var footer = document.querySelector('footer, #footer, .footer-wrapper, .site-footer');
+				var footer = document.querySelector('footer, #footer, .footer-wrapper, .site-footer, .footer-bottom');
 				if (!badge || !footer) {
 					return;
 				}
