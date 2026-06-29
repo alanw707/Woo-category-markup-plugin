@@ -11,3 +11,6 @@ The rule for choosing one category markup when a product belongs to multiple mar
 
 ## Catalog optimization
 Runtime storefront changes that remove or delay non-catalog assets on shop, product category, product tag, product taxonomy, product archive, and search pages.
+
+## Site-wide trust badge
+A reusable storefront element that displays store-level credibility signals, such as Google review rating, without tying the rating to an individual product.
